@@ -16,11 +16,11 @@ product-disjoint, and each `parent_asin` occurs only once in
 | Metric | Count |
 |---|---:|
 | Canonical examples / unique products | 1,822 |
-| Approved | 1,220 |
-| Training examples | 797 |
+| Approved | 1,246 |
+| Training examples | 823 |
 | Evaluation examples | 118 |
-| Backup examples | 483 |
-| Pending human review | 546 |
+| Backup examples | 480 |
+| Pending human review | 520 |
 | Rejected | 56 |
 
 Only approved examples are exported to training or evaluation. The backup
@@ -32,14 +32,15 @@ rejected cases.
 
 | Result | Training | Evaluation |
 |---|---:|---:|
-| `BUY` | 102 | 19 |
+| `BUY` | 128 | 19 |
 | `CONDITIONAL_BUY` | 204 | 24 |
 | `DO_NOT_BUY` | 300 | 51 |
 | `INSUFFICIENT_EVIDENCE` | 191 | 24 |
-| **Total** | **797** | **118** |
+| **Total** | **823** | **118** |
 
-The latest routing policy deliberately sends approved `BUY` examples to
-evaluation and approved `CONDITIONAL_BUY` examples to training. Do not infer
+The latest automatic generation policy sends approved `BUY` examples to
+evaluation and approved `CONDITIONAL_BUY` examples to training. A subsequent
+focused review added 26 corrected, pure `BUY` examples to training. Do not infer
 split distributions from `generation_batches[*].actual_results`: batch result
 counts include approved, pending, and rejected examples.
 
@@ -48,12 +49,13 @@ counts include approved, pending, and rejected examples.
 | File | Purpose |
 |---|---|
 | `dataset/examples_master.jsonl` | Canonical 1,822-row ledger with messages, product identity, source-review hashes, models, judge output, status, provenance, and split assignment. |
-| `dataset/training.jsonl` | 797 approved, messages-only SFT records. It currently contains 204 `CONDITIONAL_BUY` examples. |
+| `dataset/training.jsonl` | 823 approved, messages-only SFT records, including 26 `BUY` examples added by focused review. |
 | `dataset/evaluation.jsonl` | 118 approved, messages-only evaluation records, including 19 `BUY` examples and disjoint from training by product and conversation. |
-| `dataset/backup.jsonl` | 483 full examples excluded from the target result routes, including non-approved target responses and all other results from routed batches. |
-| `dataset/pending_human_review.jsonl` | 546 full examples that did not pass the automatic gate unchanged. |
+| `dataset/backup.jsonl` | 480 full examples excluded from the target result routes, including non-approved target responses and all other results from routed batches. |
+| `dataset/pending_human_review.jsonl` | 520 full examples that did not pass the automatic gate unchanged. |
 | `dataset/rejected.jsonl` | 56 full examples rejected by the judge or human-review state. |
 | `dataset/manifest.json` | Counts, result distributions, model mix, source batches, offsets, timings, and generation history. |
+| `dataset/human_review_decisions.jsonl` | The 26 applied `BUY` approvals produced by the focused review of the pending set. |
 | `dataset/human_review_decisions.example.jsonl` | Example format for recording manual decisions. It is not an applied decision file. |
 
 The messages-only exports contain exactly three roles in order: `system`,
@@ -104,9 +106,10 @@ The first 50 canonical examples used `gpt-4o` as assistant. The remaining 1,772
 used `gpt-6-sol`. Exact model and batch provenance is stored per example and in
 `dataset/manifest.json`.
 
-The active routing policy sends approved `BUY` examples to evaluation and
-approved `CONDITIONAL_BUY` examples to training. Every other result, plus all
-pending and rejected examples, is routed to `backup.jsonl`.
+The automatic generation routing policy sends approved `BUY` examples to
+evaluation and approved `CONDITIONAL_BUY` examples to training. The later human
+review added 26 corrected `BUY` examples to training. Every other generated
+result, plus all pending and rejected examples, is routed to `backup.jsonl`.
 
 ## Directory inventory
 
